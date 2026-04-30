@@ -1,24 +1,13 @@
 # Dataset 2 - Fallecidos por COVID-19 (MINSA)
 # Fuente: https://www.datosabiertos.gob.pe/dataset/fallecidos-por-covid-19-ministerio-de-salud-minsa
+# El archivo se sirve comprimido (gzip) desde el propio repo de GitHub.
 
 import pandas as pd
 import numpy as np
 import unicodedata
-import urllib.request
 
-# Headers de navegador real. Importante: el UA "Mozilla/5.0" pelado lo bloquea
-# files.minsa.gob.pe desde IPs de Google (Colab) con HTTP 403.
-url = "https://files.minsa.gob.pe/s/t9AFqRbXw3F55Ho/download"
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-}
-req = urllib.request.Request(url, headers=headers)
-with urllib.request.urlopen(req, timeout=600) as r, open("fallecidos_covid.csv", "wb") as f:
-    f.write(r.read())
-
-df = pd.read_csv("fallecidos_covid.csv", sep=";", encoding="utf-8", low_memory=False)
+URL = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/main/data/fallecidos_covid.csv.gz"
+df = pd.read_csv(URL, sep=";", compression="gzip", encoding="utf-8", low_memory=False)
 print("Antes del preprocesamiento:")
 print("  filas:", len(df), "  columnas:", df.shape[1])
 print("  duplicados:", df.duplicated().sum())

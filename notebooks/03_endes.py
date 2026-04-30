@@ -1,23 +1,13 @@
 # Dataset 3 - ENDES 2024 REC42 (lactancia / nutricion / IMC)
 # Fuente: https://www.datosabiertos.gob.pe/dataset/encuesta-demografica-y-de-salud-familiar-endes-2024-instituto-nacional-de-estadistica-e
+# El archivo se sirve comprimido (gzip) desde el propio repo de GitHub.
 
 import pandas as pd
 import numpy as np
-import urllib.request
 
-# Headers de navegador real (los servidores de la PNDA bloquean User-Agents simples)
-url = "https://www.datosabiertos.gob.pe/sites/default/files/REC42_2024.csv"
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-}
-req = urllib.request.Request(url, headers=headers)
-with urllib.request.urlopen(req, timeout=300) as r, open("REC42_2024.csv", "wb") as f:
-    f.write(r.read())
-
+URL = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/main/data/endes_2024_rec42.csv.gz"
 # El archivo viene con BOM, por eso utf-8-sig
-df = pd.read_csv("REC42_2024.csv", encoding="utf-8-sig", low_memory=False)
+df = pd.read_csv(URL, compression="gzip", encoding="utf-8-sig", low_memory=False)
 print("Antes del preprocesamiento:")
 print("  filas:", len(df), "  columnas:", df.shape[1])
 print("  V445 (IMC) min/max:", df["V445"].min(), df["V445"].max())

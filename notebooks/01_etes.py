@@ -1,21 +1,11 @@
 # Dataset 1 - ETES (Gasto Presupuestal Entidades Tratamiento Empresarial 2024)
 # Fuente: https://www.datosabiertos.gob.pe/dataset/gasto-presupuestal-de-las-entidades-de-tratamiento-empresarial-etes
+# El archivo se sirve comprimido (gzip) desde el propio repo de GitHub.
 
 import pandas as pd
-import urllib.request
 
-# Headers de navegador real (los servidores de la PNDA bloquean User-Agents simples)
-url = "https://fs.datosabiertos.mef.gob.pe/datastorefiles/2024-Gastos-ETES.csv"
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-}
-req = urllib.request.Request(url, headers=headers)
-with urllib.request.urlopen(req, timeout=600) as r, open("2024-Gastos-ETES.csv", "wb") as f:
-    f.write(r.read())
-
-df = pd.read_csv("2024-Gastos-ETES.csv", encoding="utf-8", low_memory=False)
+URL = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/main/data/etes_2024.csv.gz"
+df = pd.read_csv(URL, compression="gzip", encoding="utf-8", low_memory=False)
 print("Antes del preprocesamiento:")
 print("  filas:", len(df), "  columnas:", df.shape[1])
 print("  memoria MB:", round(df.memory_usage(deep=True).sum()/1024/1024, 1))

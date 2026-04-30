@@ -1,40 +1,24 @@
 # Dataset 5 - NNA atendidos en CEDIF (INABIF)
 # Fuente: https://www.datosabiertos.gob.pe/dataset/servicio-de-cuidado-diurno-nna-en-situacion-de-riesgo-de-desproteccion-familiar
-# Se descargan 5 archivos mensuales (oct 2025 a feb 2026) y se concatenan.
+# Los archivos se sirven comprimidos (gzip) desde el propio repo de GitHub.
 
 import pandas as pd
 import unicodedata
-import urllib.request
 
-# Headers de navegador real (los servidores de la PNDA bloquean User-Agents simples)
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-}
+BASE = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/main/data"
 
-meses = [
-    ("Octubre", 2025),
-    ("Noviembre", 2025),
-    ("Diciembre", 2025),
-    ("Enero", 2026),
-    ("Febrero", 2026),
+archivos = [
+    f"{BASE}/nna_cedif_octubre_2025.csv.gz",
+    f"{BASE}/nna_cedif_noviembre_2025.csv.gz",
+    f"{BASE}/nna_cedif_diciembre_2025.csv.gz",
+    f"{BASE}/nna_cedif_enero_2026.csv.gz",
+    f"{BASE}/nna_cedif_febrero_2026.csv.gz",
 ]
 
-rutas = []
-for mes, anio in meses:
-    url = f"https://www.datosabiertos.gob.pe/sites/default/files/NNA%20atendidos%20en%20CEDIF%20{mes}%20{anio}.csv"
-    destino = f"NNA_{mes}_{anio}.csv"
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=180) as r, open(destino, "wb") as f:
-        f.write(r.read())
-    rutas.append(destino)
-    print("  descargado:", destino)
-
 # Concatenar bruto (sin filtrar) para ver el problema
-df_raw = pd.concat([pd.read_csv(r, sep=";", encoding="latin-1", low_memory=False) for r in rutas],
-                   ignore_index=True)
-print("\nAntes del preprocesamiento:")
+df_raw = pd.concat([pd.read_csv(u, sep=";", compression="gzip", encoding="latin-1", low_memory=False)
+                    for u in archivos], ignore_index=True)
+print("Antes del preprocesamiento:")
 print("  filas:", len(df_raw), "  columnas:", df_raw.shape[1])
 print("  duplicados:", df_raw.duplicated().sum())
 print("  PAI_USU valores:", df_raw["PAI_USU"].value_counts(dropna=False).head().to_dict())
@@ -53,10 +37,10 @@ esquema = ["COD_USU", "SEX_USU", "FEC_NAC_USU", "EDAD_USU", "GRU_ET",
            "FEC_ING", "PER_ING", "TIP_SEG_SAL", "EST_ACT", "FEC_EGR", "MOT_EGR"]
 
 trozos = []
-for r in rutas:
-    d = pd.read_csv(r, sep=";", encoding="latin-1", low_memory=False)
+for u in archivos:
+    d = pd.read_csv(u, sep=";", compression="gzip", encoding="latin-1", low_memory=False)
     if all(c in d.columns for c in esquema):
-        d["__archivo__"] = r
+        d["__archivo__"] = u.rsplit("/", 1)[-1]
         trozos.append(d[esquema + ["__archivo__"]])
 df = pd.concat(trozos, ignore_index=True)
 

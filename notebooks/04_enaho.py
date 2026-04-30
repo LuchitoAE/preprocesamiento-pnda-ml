@@ -1,23 +1,13 @@
 # Dataset 4 - ENAHO 2024 modulo 01 (caracteristicas de la vivienda)
 # Fuente: https://www.datosabiertos.gob.pe/dataset/encuesta-nacional-de-hogares-enaho-2024-instituto-nacional-de-estadistica-e-informatica-
+# El archivo se sirve comprimido (gzip) desde el propio repo de GitHub.
 
 import pandas as pd
 import unicodedata
-import urllib.request
 
-# Headers de navegador real (los servidores de la PNDA bloquean User-Agents simples)
-url = "https://www.datosabiertos.gob.pe/sites/default/files/Enaho01-2024-100.csv"
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-}
-req = urllib.request.Request(url, headers=headers)
-with urllib.request.urlopen(req, timeout=300) as r, open("Enaho01-2024-100.csv", "wb") as f:
-    f.write(r.read())
-
-# El archivo viene en Latin-1 (con utf-8 falla por la "ANO" del header)
-df = pd.read_csv("Enaho01-2024-100.csv", encoding="latin-1", low_memory=False)
+URL = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/main/data/enaho_2024_mod01.csv.gz"
+# El archivo viene en Latin-1 (con utf-8 falla por la "AÑO" del header)
+df = pd.read_csv(URL, compression="gzip", encoding="latin-1", low_memory=False)
 print("Antes del preprocesamiento:")
 print("  filas:", len(df), "  columnas:", df.shape[1])
 print("  primer header:", repr(df.columns[0]), "<- tilde y enie rompen referencias")
@@ -26,7 +16,7 @@ print(df[[df.columns[0], "MES", "UBIGEO", "DOMINIO"]].head(3))
 
 # Problemas detectados:
 # - Encoding Latin-1: con utf-8 sale UnicodeDecodeError.
-# - Header "ANO" con enie y tilde, que rompe referencias en SQL u otros entornos.
+# - Header "AÑO" con eñe y tilde, que rompe referencias en SQL u otros entornos.
 # - UBIGEO viene como entero, asi que 010101 queda como 10101.
 # - 338 columnas, muchas con casi solo NaN o constantes (no aportan).
 # - DOMINIO esta codificado de 1 a 8 sin etiqueta legible.
