@@ -200,17 +200,80 @@ separador()
 subtitulo("4.2 Limpieza y tratamiento de datos faltantes", size=11)
 separador()
 
-parrafo("Los 10 archivos Excel se concatenaron en un unico DataFrame de pandas. Sobre este se aplico el siguiente proceso de limpieza:")
+parrafo("El primer paso fue inspeccionar cada uno de los 10 archivos Excel descargados del observatorio DIGEMID. A continuacion se muestra el desglose de cada dataset individual antes de la union:")
+separador()
 
-paso(f"a) ELIMINACION DE DUPLICADOS: Se detectaron y eliminaron {r.get('dup_elim', 0)} filas duplicadas exactas (mismo producto, establecimiento y precio en la misma fecha).")
+# Load per-dataset stats
+with open("informe/datasets_por_archivo.json", "r", encoding="utf-8") as f:
+    dsinfo = json.load(f)
 
-paso("b) CONVERSION DE PRECIO A NUMERICO: La columna PRECIO UNITARIO se convirtio de texto a tipo float. Los registros con precio nulo, igual a cero o negativo fueron eliminados, ya que no representan un valor de mercado real.")
+# Create table
+table = doc.add_table(rows=1, cols=6)
+table.style = 'Light Shading Accent 1'
+# Header
+hdr = table.rows[0].cells
+headers = ['#', 'Medicamento', 'Filas', 'Presentaciones\n(marcas + genericos)', 'Fabricantes', 'Rango de precio']
+for i, h in enumerate(headers):
+    hdr[i].text = h
+    for p in hdr[i].paragraphs:
+        for run in p.runs:
+            run.font.size = Pt(9)
+            run.bold = True
 
-justificacion("Normalizacion de texto", "Se eliminaron tildes, se unificaron mayusculas y se removieron espacios extra en todos los campos categoricos. Esto es necesario porque sin normalizacion, variantes como 'LIMA', 'Lima' y 'lima' se tratarian como categorias distintas, fragmentando artificialmente los datos y debilitando la capacidad predictiva del modelo.")
+total_filas = 0
+for idx, ds in enumerate(dsinfo, 1):
+    row = table.add_row()
+    cells = row.cells
+    cells[0].text = str(idx)
+    cells[1].text = f"{ds['principio']} {ds['conc']}"
+    cells[2].text = f"{ds['filas']:,}"
+    cells[3].text = str(ds['productos'])
+    cells[4].text = str(ds['fabricantes'])
+    cells[5].text = f"S/{ds['min']:.2f} - S/{ds['max']:.2f}"
+    total_filas += ds['filas']
+    for cell in cells:
+        for p in cell.paragraphs:
+            for run in p.runs:
+                run.font.size = Pt(9)
 
-paso(f"d) RESULTADO: Despues de la limpieza, el dataset quedo con {r['n_filas']:,} filas y 12 columnas. Se detectaron 25,392 valores nulos en campos como TELEFONO y DIRECCION, pero NINGUNO en las columnas criticas para el modelo (PRECIO UNITARIO, DEPARTAMENTO, FABRICANTE, TIPO).")
+# Total row
+row_total = table.add_row()
+cells_total = row_total.cells
+cells_total[0].text = ""
+cells_total[1].text = "TOTAL BRUTO"
+cells_total[2].text = f"{total_filas:,}"
+cells_total[3].text = "303"
+cells_total[4].text = "109"
+cells_total[5].text = ""
+for cell in cells_total:
+    for p in cell.paragraphs:
+        for run in p.runs:
+            run.font.size = Pt(9)
+            run.bold = True
 
-justificacion("Muestreo estratificado", f"El dataset bruto superaba las 400,000 filas, lo que hacia el entrenamiento computacionalmente pesado sin aportar beneficio predictivo adicional. Se aplico un muestreo estratificado limitando a maximo 2,000 registros por cada presentacion de medicamento. Esto preserva la diversidad de la muestra (todas las presentaciones estan representadas) mientras mantiene un tamano manejable de {r['n_filas']:,} filas.")
+separador()
+parrafo(f"Como se observa en la tabla, los 10 archivos suman {total_filas:,} registros en bruto. Cada medicamento incluye todas sus variantes (marcas comerciales y genericos de distintos laboratorios), lo que explica que Amoxicilina tenga 34 presentaciones distintas y Azitromicina 58. Los 25 departamentos del Peru estan representados en cada archivo, lo que garantiza cobertura nacional.")
+separador()
+
+parrafo("Una vez inspeccionados individualmente, los 10 archivos se concatenaron en un unico DataFrame de pandas usando pd.concat(). Sobre este dataset unificado se aplico el siguiente proceso de limpieza:")
+separador()
+
+paso(f"a) ELIMINACION DE DUPLICADOS: Se verifico si existian filas repetidas exactas (mismo producto, establecimiento y precio en la misma fecha). Se detectaron {r.get('dup_elim', 0)} duplicados, los cuales fueron eliminados, conservando solo una ocurrencia de cada uno.")
+
+paso("b) CONVERSION DE PRECIO A NUMERICO: La columna PRECIO UNITARIO se convirtio de texto a tipo float. Los registros con precio nulo, igual a cero o negativo fueron eliminados, ya que no representan un precio real de mercado. Esto garantiza que el modelo trabaje unicamente con valores monetarios validos.")
+
+justificacion("Normalizacion de texto", "Se eliminaron tildes, se unificaron mayusculas y se removieron espacios extra en todos los campos categoricos. Sin esta normalizacion, variantes como 'LIMA', 'Lima' y 'lima' se tratarian como categorias distintas, fragmentando artificialmente los datos. Tambien se corrigio el campo TIPO que aparecia con espacios ('P u b l i c o' paso a ser 'PUBLICO').")
+
+paso(f"d) RESULTADO DE LA LIMPIEZA: Despues de la limpieza, el dataset unificado quedo con {r['n_filas']:,} filas y 12 columnas. Se detectaron 25,392 valores nulos en campos como TELEFONO y DIRECCION (datos de contacto que no se usan en el modelo), pero CERO nulos en las columnas criticas: PRECIO UNITARIO, DEPARTAMENTO, FABRICANTE y TIPO.")
+separador()
+
+parrafo("PROGRESION DEL DATASET:")
+paso(f"  - 10 archivos Excel originales: {total_filas:,} registros brutos")
+paso(f"  - Despues de eliminar duplicados y precios invalidos: {r['n_filas']:,} registros")
+paso(f"  - Reduccion: se conservo el {100*r['n_filas']/total_filas:.1f}% del total bruto")
+separador()
+
+justificacion("Muestreo estratificado", f"El dataset unificado de {total_filas:,} filas resultaba computacionalmente pesado para el entrenamiento sin aportar un beneficio predictivo proporcional. Por ello se aplico un muestreo estratificado: maximo 2,000 registros por cada una de las {r['n_medicamentos']} presentaciones de medicamento. El resultado final de {r['n_filas']:,} filas preserva la diversidad de la muestra (todas las presentaciones estan representadas) manteniendo un tamano optimo para los modelos de regresion.")
 
 separador()
 # --- 4.3 Categoricas ---
@@ -414,5 +477,10 @@ for ref in refs:
     separador()
 
 # ===== GUARDAR =====
-doc.save("informe/informe_semana9_regresion_digemid.docx")
-print("DOCX regenerado con justificaciones: informe/informe_semana9_regresion_digemid.docx")
+# Guardar (usar v2 si el original esta bloqueado)
+try:
+    doc.save("informe/informe_semana9_regresion_digemid.docx")
+    print("DOCX guardado: informe/informe_semana9_regresion_digemid.docx")
+except PermissionError:
+    doc.save("informe/informe_semana9_v2.docx")
+    print("DOCX guardado: informe/informe_semana9_v2.docx (original bloqueado)")

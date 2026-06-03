@@ -1,0 +1,112 @@
+[
+  {
+    "archivo": "paracetamol.xlsx",
+    "principio": "Paracetamol",
+    "conc": "500 mg",
+    "filas": 63249,
+    "productos": 42,
+    "deptos": 25,
+    "fabricantes": 37,
+    "min": 0.02,
+    "max": 104.0
+  },
+  {
+    "archivo": "Ibuprofeno.xlsx",
+    "principio": "Ibuprofeno",
+    "conc": "400 mg",
+    "filas": 57427,
+    "productos": 36,
+    "deptos": 25,
+    "fabricantes": 29,
+    "min": 0.01,
+    "max": 208.48
+  },
+  {
+    "archivo": "Amoxicilina.xlsx",
+    "principio": "Amoxicilina",
+    "conc": "500 mg",
+    "filas": 49172,
+    "productos": 34,
+    "deptos": 25,
+    "fabricantes": 16,
+    "min": 0.01,
+    "max": 33000.0
+  },
+  {
+    "archivo": "Diclofenaco.xlsx",
+    "principio": "Diclofenaco",
+    "conc": "50 mg",
+    "filas": 42899,
+    "productos": 21,
+    "deptos": 25,
+    "fabricantes": 17,
+    "min": 0.01,
+    "max": 13000.0
+  },
+  {
+    "archivo": "Omeprazol.xlsx",
+    "principio": "Omeprazol",
+    "conc": "20 mg",
+    "filas": 35346,
+    "productos": 33,
+    "deptos": 25,
+    "fabricantes": 30,
+    "min": 0.02,
+    "max": 150.0
+  },
+  {
+    "archivo": "Losartan.xlsx",
+    "principio": "Losartan",
+    "conc": "50 mg",
+    "filas": 40569,
+    "productos": 22,
+    "deptos": 25,
+    "fabricantes": 27,
+    "min": 0.01,
+    "max": 369.0
+  },
+  {
+    "archivo": "Metformina.xlsx",
+    "principio": "Metformina",
+    "conc": "850 mg",
+    "filas": 35568,
+    "productos": 38,
+    "deptos": 25,
+    "fabricantes": 34,
+    "min": 0.01,
+    "max": 121.0
+  },
+  {
+    "archivo": "Azitromicina.xlsx",
+    "principio": "Azitromicina",
+    "conc": "500 mg",
+    "filas": 63371,
+    "productos": 58,
+    "deptos": 25,
+    "fabricantes": 40,
+    "min": 0.05,
+    "max": 612.0
+  },
+  {
+    "archivo": "Enalapril.xlsx",
+    "principio": "Enalapril",
+    "conc": "10 mg",
+    "filas": 21460,
+    "productos": 6,
+    "deptos": 25,
+    "fabricantes": 11,
+    "min": 0.01,
+    "max": 20.0
+  },
+  {
+    "archivo": "Clorfenamina.xlsx",
+    "principio": "Clorfenamina",
+    "conc": "4 mg",
+    "filas": 28072,
+    "productos": 14,
+    "deptos": 25,
+    "fabricantes": 13,
+    "min": 0.01,
+    "max": 180.0
+  }
+]
