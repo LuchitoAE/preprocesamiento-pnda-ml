@@ -2,10 +2,14 @@
 # Dataset: Precios de Medicamentos en Establecimientos de Salud (DIGEMID)
 # Fuente: Observatorio de Precios de Medicamentos - https://opm-digemid.minsa.gob.pe/
 #
-# NOTA: Ejecuta cada bloque por separado (Ctrl+Enter en VS Code / celda en Colab).
-# El archivo "precios_digemid.csv" debe estar en la misma carpeta que este script.
+# NOTA: Ejecuta cada bloque por separado.
+# El dataset se lee comprimido (gzip) desde el repositorio de GitHub.
+# Para ejecutar local, usa el CSV en datasets_limpios/precios_digemid.csv
 
 import pandas as pd
+import os
+
+URL = "https://raw.githubusercontent.com/LuchitoAE/preprocesamiento-pnda-ml/semana9-regresion/data/precios_digemid.csv.gz"
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -22,7 +26,12 @@ sns.set_style("whitegrid")
 # ============================================================
 # 0. CARGA DE DATOS
 # ============================================================
-df = pd.read_csv("../datasets_limpios/precios_digemid.csv", encoding="utf-8")
+if os.path.exists("../datasets_limpios/precios_digemid.csv"):
+    df = pd.read_csv("../datasets_limpios/precios_digemid.csv", encoding="utf-8")
+    print("(leyendo archivo local)")
+else:
+    df = pd.read_csv(URL, compression="gzip", encoding="utf-8", low_memory=False)
+    print("(leyendo desde GitHub)")
 print("Dimensiones:", df.shape)
 print("Columnas:", list(df.columns))
 print(df.head())
