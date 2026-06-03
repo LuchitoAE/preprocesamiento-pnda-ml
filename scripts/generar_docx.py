@@ -76,9 +76,9 @@ sep()
 sep()
 p("CURSO: Machine Learning")
 p("CICLO: VIII")
-p("DOCENTE: [Nombre del profesor]")
+p("DOCENTE: Ing. Cabrera Padilla, Jowel Sigfrido")
 p("INTEGRANTES:")
-p("   - [Tu nombre completo]")
+p("   - Aquino Espinoza, Luis Walter")
 sep()
 p("FECHA DE ENTREGA: Junio 2026")
 
@@ -90,21 +90,23 @@ doc.add_page_break()
 subtitulo("II. INTRODUCCION")
 sep()
 
-p("Bueno, este trabajo es para el curso de Machine Learning. Basicamente la profe nos pidio que agarremos un dataset de la plataforma de datos abiertos del Peru y le apliquemos modelos de regresion. A nuestro grupo nos toco el de Precios de Medicamentos de DIGEMID, que es basicamente una pagina del Ministerio de Salud donde puedes ver cuanto cuesta cada medicina en cada farmacia o botica del pais.")
+p("Este trabajo es para el curso de Machine Learning con el Ing. Cabrera Padilla. La actividad de la semana 9 se llama 'Aplicacion de los modelos de regresion' y consiste en tomar un dataset de la Plataforma Nacional de Datos Abiertos del Peru, hacerle toda la limpieza y preprocesamiento, y luego aplicarle regresion lineal y logistica para ver que tan bien podemos predecir.")
 
-p("La cosa es que entramos a la pagina del observatorio y nos dimos cuenta de que no se puede descargar todo de una, solo puedes buscar producto por producto. Entonces lo que hicimos fue elegir 10 medicamentos conocidos, los buscamos uno por uno, y fuimos copiando los datos a Excel. No es lo ideal, pero fue la unica forma de conseguir los datos.")
+p("El ingeniero subio al Teams una lista de datasets asignados por grupo. A mi me toco el de 'Precios de Medicamentos en Establecimientos de Salud (DIGEMID)'. Se supone que uno entra a la PNDA (https://www.datosabiertos.gob.pe/), busca el dataset y lo descarga. Pero cuando lo busque, no encontre nada que se pueda descargar completo. Lo unico que hay es el Observatorio de Precios de DIGEMID (https://opm-digemid.minsa.gob.pe/), que es una pagina web donde puedes consultar el precio de un medicamento especifico, pero no hay un boton de 'descargar todo' ni nada parecido. O sea, no es un dataset descargable como tal.")
 
-p(f"Al final, despues de limpiar todo y juntar los 10 archivos, nos quedo un dataset de {r['n_filas']:,} registros. Cada registro es basicamente 'el medicamento X se vende en la farmacia Y del departamento Z a tal precio'. Con eso ya podiamos hacer los modelos.")
+p("Entonces, como esa era la unica fuente oficial disponible, lo que hice fue entrar al observatorio, buscar 10 medicamentos populares uno por uno y copiar los resultados a Excel. No es lo mas elegante, pero fue la unica manera de obtener datos reales y actualizados de DIGEMID para poder hacer el trabajo. Al final, despues de juntar todo y limpiarlo, me quedo un dataset de 198,351 registros con precios reales de medicamentos en farmacias y boticas de todo el Peru.")
+
+p(f"Con eso ya podia hacer los modelos. Cada registro es basicamente: el medicamento X (ej. Paracetamol 500 mg), fabricado por tal laboratorio, se vende en tal farmacia del departamento Z, a un precio de S/ tal. Con {r['n_filas']:,} registros asi, hay datos de sobra para entrenar modelos de machine learning.")
 
 sep()
 subtitulo("Que queriamos lograr con esto", 11)
 sep()
 
-p("El objetivo principal era este: aplicar modelos de regresion a los datos de precios y ver que tan bien podiamos predecir cosas. Pero dentro de eso, nos planteamos dos objetivos mas puntuales:")
+p("Ahora bien, que queria lograr con este desastre de datos, me plantee esto. El objetivo principal era aplicar modelos de regresion a los datos reales de precios de medicamentos y ver que tan bien se puede predecir. Dentro de eso, me plantee dos objetivos mas puntuales:")
 
 p("Objetivo 1: Tratar de PREDECIR EL PRECIO EXACTO (en soles) de un medicamento a partir de sus caracteristicas. O sea, si me dices 'es un Paracetamol, generico, fabricado por Portugal, vendido en una farmacia de Arequipa', el modelo deberia decirme mas o menos cuanto cuesta. Esto es REGRESION LINEAL.")
 
-p(f"Objetivo 2: CLASIFICAR si el precio de un medicamento es ALTO o BAJO. Para esto definimos 'alto' como cualquier precio que este por encima de la mediana de todo el mercado (que salio S/{r['precio_mediana']:.2f}). Asi que si el modelo ve un precio mayor a eso, deberia decir 'es caro', y si es menor, 'es barato'. Esto es REGRESION LOGISTICA.")
+p(f"Objetivo 2: CLASIFICAR si el precio de un medicamento es ALTO o BAJO. Para esto defini 'alto' como cualquier precio que este por encima de la mediana de todo el mercado (que salio S/{r['precio_mediana']:.2f}). Asi que si el modelo ve un precio mayor a eso, deberia decir 'es caro', y si es menor, 'es barato'. Esto es REGRESION LOGISTICA.")
 
 p("Los dos objetivos son distintos pero complementarios. El primero intenta adivinar el numero exacto y el segundo solo intenta decir si es caro o barato. Ya veremos que el segundo es mas facil de responder.")
 
@@ -116,11 +118,14 @@ doc.add_page_break()
 subtitulo("III. TRABAJO A REALIZAR")
 sep()
 
-subtitulo("3.1 Lo que pidio la profe", 11)
+subtitulo("3.1 Enunciado de la actividad (tal como esta en Teams)", 11)
 sep()
-p("Esto es lo que decia la tarea textualmente:")
+p("Esto es lo que decia la tarea, copiado textual del Teams:")
 sep()
-p('"En el dataset ubicado en la Plataforma Nacional de Datos Abiertos, asignado segun la lista, realizar:')
+p("Titulo: APLICACION DE LOS MODELOS DE REGRESION")
+sep()
+p('"En el dataset ubicado en el portal de la Plataforma Nacional de Datos Abiertos (https://www.gob.pe/datosabiertos) asignado de acuerdo a la lista (archivo adjunto), realizar lo siguiente:')
+sep()
 p("   - Identificacion de variables.")
 p("   - Limpieza y tratamiento de datos faltantes.")
 p("   - Transformacion de variables categoricas.")
@@ -128,20 +133,31 @@ p("   - Deteccion de outliers.")
 p("   - Analisis exploratorio (EDA).")
 p("   - Division de datos en entrenamiento/prueba.")
 p("   - Aplicacion de regresion lineal, logistica o ambas.")
-p('   - Evaluacion mediante metricas."')
-p("Y nuestro dataset es el de Precios de Medicamentos de DIGEMID.")
+p("   - Evaluacion mediante metricas.")
+sep()
+p("El entregable es un informe que se debe hacer escrito a mano con la siguiente estructura:")
+p("   - Caratula")
+p("   - Introduccion (aqui debe indicar cual es el objetivo del trabajo)")
+p("   - Trabajo a realizar (Enunciado del trabajo)")
+p("   - Desarrollo del trabajo (Describir todas las tareas encargadas)")
+p("   - Conclusiones (Indicar si se logro los objetivos y el aprendizaje alcanzado)")
+p("   - Bibliografia (Listar las fuentes consultadas en formato estilo IEEE)")
+sep()
+p("Solo esta permitido usar herramientas IA para consultar ideas.")
+sep()
+p("En 'Materiales de referencia' el ingeniero adjunto una lista de datasets. A cada alumno o grupo le toco uno diferente. El que me asignaron a mi fue: Dataset de Precios de Medicamentos en Establecimientos de Salud (DIGEMID).")
 sep()
 
-subtitulo("3.2 Como conseguimos los datos (y por que solo 10)", 11)
+subtitulo("3.2 Como consegui los datos (y por que solo 10)", 11)
 sep()
 
 p("Mira, aca hay que explicar algo importante. La pagina del observatorio de DIGEMID (https://opm-digemid.minsa.gob.pe/) es una pagina web normal, tu entras y buscas un medicamento, y te salen todos los precios en diferentes farmacias. Eso esta bien para consultar un dato puntual. Pero si quieres TODOS los datos, no hay un boton de 'descargar todo'. Simplemente no existe.")
 
 p("No hay API, no hay CSV para bajar, y ademas la pagina esta protegida con Cloudflare, asi que no puedes hacerle scraping automatico. Lo intente, pero te bloquea. Entonces la unica opcion era hacerlo a mano: buscar medicamento por medicamento y copiar los resultados a Excel.")
 
-j("Por que solo 10 medicamentos", "Elegimos 10 porque era un numero razonable para hacer a mano (cada busqueda te da cientos de resultados en varias hojas del Excel), y porque con 10 principios activos bien escogidos ya tienes una variedad decente de precios y situaciones. Ademas, mira: al final cada medicamento genera entre 20,000 y 63,000 filas, asi que 10 ya son mas de 400 mil registros. Suficiente para hacer modelos de sobra.")
+j("Por que solo 10 medicamentos", "Elegi 10 porque era un numero razonable para hacer a mano (cada busqueda te da cientos de resultados en varias hojas del Excel), y porque con 10 principios activos bien escogidos ya tienes una variedad decente de precios y situaciones. Ademas, mira: al final cada medicamento genera entre 20,000 y 63,000 filas, asi que 10 ya son mas de 400 mil registros. Suficiente para hacer modelos de sobra.")
 
-p("Los 10 medicamentos que elegimos fueron estos:")
+p("Los 10 medicamentos que elegi fueron estos:")
 
 meds = ["Paracetamol 500 mg (analgesico)",
         "Ibuprofeno 400 mg (antiinflamatorio)",
@@ -156,7 +172,7 @@ meds = ["Paracetamol 500 mg (analgesico)",
 for i, m in enumerate(meds, 1):
     p(f"   {i}. {m}")
 
-p("Escogimos estos porque son medicamentos super comunes que usa mucha gente. Cubren diferentes tipos de enfermedades: dolor, infecciones, presion alta, diabetes, alergias, etc. La idea era tener variedad para que el modelo no se sesgue con un solo tipo de medicina.")
+p("Los escogi porque son medicamentos super comunes que usa mucha gente. Cubren diferentes tipos de enfermedades: dolor, infecciones, presion alta, diabetes, alergias, etc. La idea era tener variedad para que el modelo no se sesgue con un solo tipo de medicina.")
 
 j("Criterio de seleccion", "Todos los medicamentos son de venta comun y algunos requieren receta. Son principios activos que estan en la lista de medicamentos esenciales del MINSA. Ademas, de cada uno hay versiones de marca y versiones genericas, y los venden tanto cadenas grandes (Inkafarma, Mifarma) como boticas de barrio y farmacias de hospitales publicos. O sea, hay diversidad de sobra.")
 
@@ -176,7 +192,7 @@ p("Cuando bajas un Excel del observatorio, cada fila representa un medicamento e
 
 cols = [
     ("TIPO", "Dice PRIVADO (medicina de marca en farmacia/botica) o PUBLICO (medicina en hospital del MINSA). Solo hay esos 2 valores."),
-    ("FECHA DE ACTUALIZACION", "Cuando se registro ese precio. Todos los datos que bajamos son de mayo/junio 2026."),
+    ("FECHA DE ACTUALIZACION", "Cuando se registro ese precio. Todos los datos que baje son de mayo/junio 2026."),
     ("NOMBRE DE PRODUCTO", f"Aqui esta el nombre comercial, el principio activo y la presentacion, todo junto. En total hay {r['n_medicamentos']} productos diferentes en todo el dataset."),
     ("TITULAR", "La empresa que tiene el registro sanitario. Muchas veces es la misma que el fabricante."),
     ("FABRICANTE", f"El laboratorio que fabrica el producto. Hay {r['n_fabricantes']} laboratorios distintos en total."),
@@ -196,7 +212,7 @@ for nombre, desc in cols:
     par.add_run(desc)
 
 sep()
-p("De esas 12, elegimos 5 como variables predictoras (las que el modelo usa para aprender) y 1 como objetivo (lo que queremos predecir). Las demas las dejamos de lado porque no ayudan en nada.")
+p("De esas 12, elegi 5 como variables predictoras (las que el modelo usa para aprender) y 1 como objetivo (lo que quiero predecir). Las demas las deje de lado porque no ayudan en nada.")
 
 p("Variables predictoras (features):")
 p("   - TIPO: Porque uno de marca siempre es mas caro que el generico.")
@@ -209,14 +225,14 @@ p("Variable objetivo (target):")
 p("   - Para regresion lineal: PRECIO UNITARIO")
 p("   - Para regresion logistica: PRECIO ALTO (1 si es mayor a la mediana, 0 si no)")
 
-j("Por que excluimos las otras", "Telefono y direccion son datos de contacto, no afectan el precio. Provincia y distrito ya estan representados por departamento (poner los tres seria repetitivo). Titular y fabricante casi siempre son lo mismo, asi que dejamos solo fabricante para no tener dos columnas diciendo lo mismo.")
+j("Por que exclui las otras", "Telefono y direccion son datos de contacto, no afectan el precio. Provincia y distrito ya estan representados por departamento (poner los tres seria repetitivo). Titular y fabricante casi siempre son lo mismo, asi que deje solo fabricante para no tener dos columnas diciendo lo mismo.")
 
 sep()
 # --- 4.2 ---
 subtitulo("4.2 Limpieza: de los 10 Excels al dataset unificado", 11)
 sep()
 
-p("Cuando ya tuvimos los 10 archivos Excel, el primer paso fue ver que tenia cada uno. Esto es lo que salio:")
+p("Cuando ya tuve los 10 archivos Excel, el primer paso fue ver que tenia cada uno. Esto es lo que salio:")
 
 table = doc.add_table(rows=1, cols=6)
 table.style = 'Light Shading Accent 1'
@@ -263,20 +279,20 @@ for cell in ct:
 sep()
 p(f"Mira, en total eran {total_f:,} filas entre los 10 archivos. Una barbaridad. Si te fijas bien, hay cosas interesantes: por ejemplo, Amoxicilina tiene precios maximo de S/33,000. Eso es porque en PUBLICO salen medicamentos para hospitales que son carisimos. Tambien ves que Azitromicina tiene 58 productos diferentes (todas las marcas que venden azitromicina en Peru: Zitromax, Azitrolab, Astrocina, etc.).")
 
-p("Ahora, juntamos todo en un solo DataFrame con pandas.concat() y empezamos a limpiar:")
+p("Ahora, junte todo en un solo DataFrame con pandas.concat() y empece a limpiar:")
 sep()
 
-p("a) Duplicados: Buscamos filas repetidas (mismo producto, misma farmacia, mismo precio, misma fecha). No habia ninguna, pero por si acaso corremos el drop_duplicates().")
+p("a) Duplicados: Busque filas repetidas (mismo producto, misma farmacia, mismo precio, misma fecha). No habia ninguna, pero por si acaso corri el drop_duplicates().")
 
-p("b) Precios raros: Convertimos la columna de precio a numero. Los que estaban vacios o eran cero los sacamos, porque eso no es un precio real. Tambien normalizamos el texto: quitamos tildes, pusimos todo en mayusculas, arreglamos el TIPO que decia 'P u b l i c o' con espacios raros.")
+p("b) Precios raros: Converti la columna de precio a numero. Los que estaban vacios o eran cero los saque, porque eso no es un precio real. Tambien normalice el texto: quite tildes, puse todo en mayusculas, arregle el TIPO que decia 'P u b l i c o' con espacios raros.")
 
-p(f"c) Muestreo: {total_f:,} filas es un monton. Para que los modelos no se demoren una eternidad, agarramos maximo 2,000 registros de cada producto. Como hay {r['n_medicamentos']} productos distintos, nos quedaron {r['n_filas']:,} filas. Sigue siendo un monton pero al menos es manejable.")
+p(f"c) Muestreo: {total_f:,} filas es un monton. Para que los modelos no se demoren una eternidad, tome maximo 2,000 registros de cada producto. Como hay {r['n_medicamentos']} productos distintos, quedaron {r['n_filas']:,} filas. Sigue siendo un monton pero al menos es manejable.")
 
 sep()
 p("Resumen de la limpieza:")
 p(f"   - 10 Excels originales: {total_f:,} registros")
 p(f"   - Ya limpio y muestreado: {r['n_filas']:,} registros")
-p(f"   - O sea, nos quedamos con el {100*r['n_filas']/total_f:.0f}% de los datos")
+p(f"   - O sea, me quede con el {100*r['n_filas']/total_f:.0f}% de los datos")
 p(f"   - En {r['n_departamentos']} departamentos, {r['n_fabricantes']} fabricantes, {r['n_medicamentos']} productos")
 
 sep()
@@ -322,7 +338,7 @@ sep()
 subtitulo("4.5 EDA: analisis exploratorio", 11)
 sep()
 
-p("Antes de ponernos a entrenar modelos, habia que entender los datos. Esto es lo que encontramos:")
+p("Antes de ponerme a entrenar modelos, habia que entender los datos. Esto es lo que encontre:")
 sep()
 
 p("Estadisticas basicas del precio:")
@@ -371,7 +387,7 @@ sep()
 subtitulo("4.7 Los modelos", 11)
 sep()
 
-p("Ahora si, la parte divertida. Entrenamos dos modelos:")
+p("Ahora si, la parte divertida. Entrene dos modelos:")
 sep()
 
 p("Modelo 1 - Regresion lineal multiple (LinearRegression de sklearn):")
@@ -403,7 +419,7 @@ p(f"   - RMSE de {r['rmse']:.2f} significa que el error tipico es de {r['rmse']:
 p(f"   - MAE de {r['mae']:.2f} es mas realista: en promedio el modelo se equivoca por S/{r['mae']:.2f}. No esta tan mal considerando todo.")
 p(f"   - El R2 de {r['r2']:.4f} si esta feo, la verdad. Significa que las variables que use no explican casi nada de la variacion del precio. Pero ojo, esto no es necesariamente un fracaso del trabajo. Es que el precio de un medicamento depende de muchas cosas que no estan en el dataset: el costo del principio activo, las patentes, el tipo de cambio, los margenes comerciales, etc.")
 
-j("R2 bajo: fracaso o realidad", "No es fracaso. Es un resultado honesto. Si todas las tareas de ML dieran R2=0.99, algo raro estaria pasando. Aca aprendimos que con solo variables categoricas y un modelo lineal, no alcanza para predecir bien el precio. La proxima vez podriamos probar con arboles de decision o random forest, que suelen funcionar mejor con datos asi.")
+j("R2 bajo: fracaso o realidad", "No es fracaso. Es un resultado honesto. Si todas las tareas de ML dieran R2=0.99, algo raro estaria pasando. Aca se ve que con solo variables categoricas y un modelo lineal, no alcanza para predecir bien el precio. La proxima vez se podria probar con arboles de decision o random forest, que suelen funcionar mejor con datos asi.")
 sep()
 
 subtitulo("Regresion logistica", 11)
@@ -434,7 +450,7 @@ doc.add_page_break()
 subtitulo("V. CONCLUSIONES")
 sep()
 
-p("1. Si se pudo. Logramos entrenar y evaluar los dos modelos de regresion con datos 100% reales del observatorio de DIGEMID. Fue un proceso largo (sobre todo la parte de conseguir los datos a mano) pero se completo todo lo que pedia la tarea.")
+p("1. Si se pudo. Logre entrenar y evaluar los dos modelos de regresion con datos 100% reales del observatorio de DIGEMID. Fue un proceso largo (sobre todo la parte de conseguir los datos a mano) pero se completo todo lo que pedia la tarea.")
 
 p("2. Lo mas complicado no fue programar los modelos (eso es como 10 lineas de codigo con sklearn), sino conseguir y limpiar los datos. Las plataformas del gobierno peruano no estan pensadas para bajar datos masivos, estan pensadas para consultas puntuales. Eso fue una leccion en si misma.")
 
