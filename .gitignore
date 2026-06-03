@@ -1,0 +1,5 @@
+datos/*.xlsx
+datasets_limpios/precios_digemid.csv
+informe/resultados_ml.json
+__pycache__/
+*.pyc

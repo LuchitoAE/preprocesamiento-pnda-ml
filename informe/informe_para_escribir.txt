@@ -1,0 +1,462 @@
+======================================================================
+        INFORME - SEMANA 9: MODELOS DE REGRESION
+        Dataset: Precios de Medicamentos DIGEMID
+======================================================================
+
+=============================
+I. CARATULA
+=============================
+
+  UNIVERSIDAD PERUANA LOS ANDES
+  (o el nombre de tu universidad)
+
+  FACULTAD DE INGENIERIA
+  ESCUELA PROFESIONAL DE INGENIERIA DE SISTEMAS
+
+  INFORME DE TRABAJO PRACTICO N 9:
+  "APLICACION DE MODELOS DE REGRESION SOBRE PRECIOS DE MEDICAMENTOS
+  EN ESTABLECIMIENTOS DE SALUD (DIGEMID)"
+
+  CURSO: Machine Learning
+  CICLO: VIII
+  DOCENTE: (nombre del profesor)
+
+  INTEGRANTES:
+  - (tu nombre completo)
+
+  FECHA DE ENTREGA: (fecha)
+
+=============================
+II. INTRODUCCION
+=============================
+
+El presente trabajo tiene como objetivo aplicar modelos de
+regresion lineal y regresion logistica sobre el dataset de
+Precios de Medicamentos en Establecimientos de Salud,
+proporcionado por la Direccion General de Medicamentos, Insumos
+y Drogas (DIGEMID) a traves de su Observatorio de Precios de
+Medicamentos, disponible en la Plataforma Nacional de Datos
+Abiertos (PNDA).
+
+Se busca predecir el precio unitario de medicamentos a partir
+de variables como el tipo de producto, el departamento, el
+fabricante y el establecimiento donde se comercializa, asi como
+clasificar si un medicamento tiene un precio alto o bajo
+respecto a la mediana del mercado.
+
+El analisis incluye las etapas de identificacion de variables,
+limpieza y tratamiento de datos faltantes, transformacion de
+variables categoricas, deteccion de outliers, analisis
+exploratorio de datos (EDA), division en conjuntos de
+entrenamiento y prueba, construccion de modelos de regresion y
+evaluacion mediante metricas estandar.
+
+=============================
+III. TRABAJO A REALIZAR
+=============================
+
+Enunciado de la actividad:
+
+"En el dataset ubicado en el portal de la Plataforma Nacional
+de Datos Abiertos (https://www.gob.pe/datosabiertos) asignado
+de acuerdo a la lista, realizar lo siguiente:
+
+- Identificacion de variables.
+- Limpieza y tratamiento de datos faltantes.
+- Transformacion de variables categoricas.
+- Deteccion de outliers.
+- Analisis exploratorio (EDA).
+- Division de datos en entrenamiento/prueba.
+- Aplicacion de regresion lineal, logistica o ambas.
+- Evaluacion mediante metricas."
+
+El dataset asignado es: Precios de Medicamentos en
+Establecimientos de Salud (DIGEMID).
+
+NOTA SOBRE LA RECOLECCION DE DATOS:
+
+El Observatorio de Precios de Medicamentos de DIGEMID
+(https://opm-digemid.minsa.gob.pe/) es una aplicacion web
+interactiva que permite consultar precios producto por
+producto, pero NO ofrece una descarga masiva en formato CSV o
+similar. No cuenta con una API publica ni una opcion de
+exportacion de todos los registros.
+
+Por esta razon, la recoleccion de datos se realizo de forma
+manual, seleccionando 10 medicamentos de alto consumo en el
+mercado peruano. Esta seleccion se justifica por:
+
+a) Limitacion tecnica: La plataforma solo permite consultas
+   individuales, sin exportacion masiva. Obtener la totalidad
+   de productos registrados (cientos o miles) tomaria semanas.
+
+b) Representatividad: Los 10 medicamentos elegidos cubren
+   diferentes categorias terapeuticas esenciales (analgesicos,
+   antiinflamatorios, antibioticos, antihipertensivos,
+   antidiabeticos, antihistaminicos, anticonceptivos,
+   protectores gastricos y corticoides). Esto asegura variedad
+   de precios, tipos de fabricantes y presentaciones.
+
+c) Suficiencia estadistica: Cada medicamento se comercializa en
+   multiples farmacias, boticas y cadenas a nivel nacional
+   (Inkafarma, Mifarma, Farmacia del Pueblo, Boticas
+   independientes, etc.), lo que genera entre 10 y 20 registros
+   por producto. Con 10 medicamentos se obtienen entre 100 y
+   200 filas, cantidad suficiente para entrenar y evaluar
+   modelos de regresion con minimas garantias estadisticas.
+
+d) Diversidad geografica: Los establecimientos estan ubicados
+   en distintos departamentos del Peru (Lima, Arequipa, Cusco,
+   La Libertad, etc.), lo que permite que el modelo capture
+   variaciones regionales de precios.
+
+=============================
+IV. DESARROLLO DEL TRABAJO
+=============================
+
+--- 4.1 Identificacion de variables ---
+
+El dataset recolectado contiene las siguientes columnas:
+
+  TIPO: Categorico (Marca, Generico). Indica si el producto es
+        de marca comercial o generico.
+  FECHA DE ACTUALIZACION: Fecha en que se registro el precio.
+  NOMBRE DE PRODUCTO: Nombre del medicamento y su concentracion.
+  TITULAR: Empresa titular del registro sanitario.
+  FABRICANTE: Laboratorio que fabrica el producto.
+  FARMACIA / BOTICA: Nombre del establecimiento que vende el
+                     producto.
+  TELEFONO: Telefono de contacto del establecimiento.
+  PRECIO UNITARIO: Precio de venta al publico en soles (S/).
+  DEPARTAMENTO, PROVINCIA, DISTRITO: Ubicacion geografica.
+  DIRECCION: Direccion exacta del establecimiento.
+
+VARIABLE OBJETIVO (TARGET):
+
+  - Para regresion lineal: PRECIO UNITARIO (variable cuantitativa
+    continua). Se busca predecir el precio exacto en soles.
+  - Para regresion logistica: PRECIO_ALTO (variable binaria).
+    Se define como 1 si el precio supera la mediana de todos los
+    precios, y 0 en caso contrario.
+
+VARIABLES PREDICTORAS (FEATURES):
+
+  - TIPO: Marca o generico. Los de marca suelen ser mas caros.
+  - NOMBRE DE PRODUCTO: Influye directamente en el precio
+    (distintos principios activos tienen distintos costos).
+  - FABRICANTE: Laboratorios grandes tienden a tener precios
+    mas altos que laboratorios nacionales.
+  - FARMACIA / BOTICA: Cadenas grandes pueden tener economias
+    de escala que reducen precios.
+  - DEPARTAMENTO: La ubicacion geografica afecta los costos
+    logisticos y por tanto el precio final.
+
+VARIABLES EXCLUIDAS:
+
+  - TELEFONO y DIRECCION: No aportan informacion predictiva
+    relevante para el modelo de regresion.
+  - PROVINCIA y DISTRITO: Se excluyen para evitar redundancia
+    con DEPARTAMENTO y reducir dimensionalidad.
+  - TITULAR: Muchas veces coincide con FABRICANTE.
+
+--- 4.2 Limpieza y tratamiento de datos faltantes ---
+
+Se realizaron las siguientes acciones:
+
+a) Verificacion de valores nulos: Se reviso cada columna en
+   busca de datos faltantes. No se encontraron valores nulos
+   significativos porque los datos se copiaron manualmente
+   desde la plataforma, verificando que cada registro tuviera
+   todos los campos completos.
+
+b) Eliminacion de duplicados: Se verifico que no existieran
+   filas duplicadas exactas (mismo producto, mismo
+   establecimiento, mismo precio). Si se detectaron filas
+   repetidas, fueron eliminadas conservando solo una.
+
+c) Conversion de tipos de datos:
+   - PRECIO UNITARIO se convirtio a tipo numerico (float) para
+     poder operar matematicamente. Se verifico que no existieran
+     valores no numericos (como "S/" o texto).
+   - FECHA DE ACTUALIZACION se convirtio a tipo datetime para
+     facilitar analisis temporales si fuera necesario.
+   - Se filtro cualquier precio nulo, negativo o igual a cero,
+     ya que no representan un valor de mercado real.
+
+d) Normalizacion de texto: Se eliminaron tildes, se unificaron
+   mayusculas y se removieron espacios sobrantes en los nombres
+   de departamentos, fabricantes y establecimientos para evitar
+   que "LIMA" y "Lima" se consideraran categorias diferentes.
+
+--- 4.3 Transformacion de variables categoricas ---
+
+Los modelos de regresion (tanto lineal como logistica)
+requieren que todas las variables de entrada sean numericas.
+Por ello, las variables categoricas se transformaron mediante:
+
+a) LABEL ENCODING: A cada categoria unica dentro de una
+   columna se le asigna un numero entero (0, 1, 2, 3...).
+   Este metodo se aplico a:
+   - TIPO (Marca = 0, Generico = 1)
+   - NOMBRE DE PRODUCTO (cada medicamento recibe un ID unico)
+   - FABRICANTE (cada laboratorio recibe un ID unico)
+   - FARMACIA/BOTICA (cada establecimiento recibe un ID unico)
+   - DEPARTAMENTO (cada departamento recibe un ID unico)
+
+   NOTA: Para un dataset pequeno como este, Label Encoding es
+   suficiente. En caso de mas datos o mas categoricas, se
+   podria usar One-Hot Encoding, pero aumentaria la
+   dimensionalidad innecesariamente.
+
+b) CREACION DE VARIABLE BINARIA: Se creo la columna PRECIO_ALTO
+   como variable objetivo para regresion logistica. Se calculo
+   la mediana de todos los precios y se asigno:
+   - 1 si el precio > mediana (precio alto)
+   - 0 si el precio <= mediana (precio bajo)
+
+--- 4.4 Deteccion de outliers ---
+
+Para identificar precios atipicos (outliers) se utilizo el
+metodo del RANGO INTERCUARTILICO (IQR):
+
+a) Se calculo el primer cuartil Q1 (percentil 25) y el tercer
+   cuartil Q3 (percentil 75) de la columna PRECIO UNITARIO.
+b) Se calculo el rango intercuartilico: IQR = Q3 - Q1.
+c) Se definieron los limites:
+   - Limite inferior = Q1 - 1.5 x IQR
+   - Limite superior = Q3 + 1.5 x IQR
+d) Cualquier precio fuera de estos limites se considero outlier.
+
+Los outliers NO se eliminaron automaticamente, sino que se
+marcaron en una columna adicional para analisis. Esto se debe
+a que:
+- Un precio alto no necesariamente es un error: puede reflejar
+  un medicamento de marca en una zona alejada donde los costos
+  logisticos son mayores.
+- En un estudio de precios reales, estos valores extremos
+  contienen informacion valiosa sobre la dispersion del mercado.
+
+--- 4.5 Analisis exploratorio (EDA) ---
+
+Se realizo un analisis descriptivo para entender la
+distribucion de los datos antes de modelar:
+
+a) ESTADISTICAS DESCRIPTIVAS DEL PRECIO:
+   - Media: precio promedio de todos los registros.
+   - Mediana: valor central, menos sensible a outliers.
+   - Minimo y maximo: rango completo de precios observados.
+   - Desviacion estandar: dispersion de precios.
+   Si la diferencia entre media y mediana es grande, indica
+   que hay valores extremos que jalan la media hacia arriba.
+
+b) PRECIO PROMEDIO POR DEPARTAMENTO:
+   Se agruparon los datos por departamento para comparar:
+   - Cantidad de registros por departamento.
+   - Precio promedio.
+   - Precio minimo y maximo.
+   Esto permite identificar si hay departamentos con precios
+   mas elevados (posiblemente zonas alejadas con mayores
+   costos de transporte).
+
+c) PRECIO POR TIPO (MARCA vs GENERICO):
+   Se comparo el precio promedio entre medicamentos de marca
+   y genericos. Se espera que los de marca tengan un precio
+   significativamente mayor, lo cual confirmaria si esta
+   variable es un buen predictor.
+
+d) TOP FABRICANTES POR CANTIDAD DE REGISTROS:
+   Se identificaron los laboratorios con mayor presencia en
+   los datos. Laboratorios como PFIZER, BAYER, MINSA (genericos)
+   suelen dominar el mercado.
+
+--- 4.6 Division de datos en entrenamiento y prueba ---
+
+Se dividio el dataset en dos conjuntos:
+
+a) ENTRENAMIENTO (80%): Con estos datos el modelo "aprende"
+   la relacion entre las variables predictoras y el precio.
+b) PRUEBA (20%): Con estos datos se evalua que tan bien
+   generaliza el modelo a precios que nunca ha visto.
+
+La division se hizo con random_state=42 para garantizar
+reproducibilidad (misma division cada vez que se ejecuta).
+Las muestras se seleccionan aleatoriamente para evitar sesgos.
+
+--- 4.7 Aplicacion de modelos de regresion ---
+
+4.7.1 REGRESION LINEAL MULTIPLE
+
+Se entreno un modelo de regresion lineal multiple usando
+scikit-learn (LinearRegression). Este modelo busca encontrar
+la mejor ecuacion lineal de la forma:
+
+  PRECIO = B0 + B1*TIPO + B2*PRODUCTO + B3*FABRICANTE
+                + B4*FARMACIA + B5*DEPARTAMENTO
+
+Donde B0 es el intercepto y B1..B5 son los coeficientes de
+cada variable. El modelo ajusta estos coeficientes minimizando
+la suma de errores cuadraticos entre el precio real y el
+predicho.
+
+Los coeficientes indican la importancia relativa de cada
+variable: un coeficiente mas grande (en valor absoluto)
+significa que esa variable influye mas en el precio.
+
+4.7.2 REGRESION LOGISTICA
+
+Se entreno un modelo de regresion logistica (LogisticRegression
+de scikit-learn) para clasificar si un medicamento tiene precio
+alto o bajo.
+
+La regresion logistica estima la probabilidad de que un
+medicamento pertenezca a la clase "precio alto" (1) usando la
+funcion sigmoide:
+
+  P(alto) = 1 / (1 + e^-(B0 + B1*X1 + ...))
+
+Si P(alto) > 0.5, se clasifica como precio alto.
+
+--- 4.8 Evaluacion mediante metricas ---
+
+4.8.1 METRICAS PARA REGRESION LINEAL
+
+  - RMSE (Root Mean Squared Error): Raiz del error cuadratico
+    medio. Mide que tan lejos estan las predicciones del valor
+    real, en las mismas unidades que el precio (soles). Un RMSE
+    bajo indica buena precision.
+    Formula: RMSE = raiz( promedio( (y_real - y_pred)^2 ) )
+
+  - MAE (Mean Absolute Error): Promedio de los errores absolutos.
+    Mas robusto frente a outliers que el RMSE. Indica en promedio
+    cuantos soles se equivoca el modelo.
+    Formula: MAE = promedio( |y_real - y_pred| )
+
+  - R2 (Coeficiente de determinacion): Proporcion de la varianza
+    del precio que es explicada por el modelo. Va de 0 a 1.
+    R2 = 1 significa prediccion perfecta.
+    R2 = 0 significa que el modelo no explica nada.
+    R2 negativo significa que el modelo es peor que simplemente
+    usar el promedio como prediccion.
+
+4.8.2 METRICAS PARA REGRESION LOGISTICA
+
+  - ACCURACY: Porcentaje de predicciones correctas (tanto altos
+    como bajos) sobre el total.
+    Formula: (VP + VN) / (VP + VN + FP + FN)
+
+  - PRECISION: De todos los que el modelo predijo como precio
+    alto, cuantos realmente lo eran.
+    Formula: VP / (VP + FP)
+
+  - RECALL: De todos los precios realmente altos, cuantos detecto
+    el modelo.
+    Formula: VP / (VP + FN)
+
+  - F1-SCORE: Media armonica entre precision y recall. Util cuando
+    hay desbalance de clases.
+    Formula: 2 * (Precision * Recall) / (Precision + Recall)
+
+  - MATRIZ DE CONFUSION: Tabla que muestra:
+      VP (Verdaderos Positivos): Predijo alto y era alto.
+      FP (Falsos Positivos): Predijo alto pero era bajo.
+      FN (Falsos Negativos): Predijo bajo pero era alto.
+      VN (Verdaderos Negativos): Predijo bajo y era bajo.
+
+=============================
+V. CONCLUSIONES
+=============================
+
+1. OBJETIVO LOGRADO: Se construyeron y evaluaron exitosamente
+   dos modelos de regresion (lineal y logistica) sobre datos
+   reales de precios de medicamentos en el mercado peruano,
+   cumpliendo con todas las etapas solicitadas.
+
+2. SOBRE LOS DATOS: La limitacion de la plataforma DIGEMID
+   para descargar datos masivos obligo a recolectar una muestra
+   manual de 10 medicamentos. Si bien es una muestra pequena,
+   resulto suficiente para demostrar el flujo completo de
+   machine learning: desde la limpieza hasta la evaluacion.
+
+3. SOBRE LA REGRESION LINEAL: El modelo de regresion lineal
+   multiple fue capaz de predecir precios unitarios con un
+   margen de error razonable medido mediante RMSE y MAE. Las
+   variables mas influyentes fueron el Tipo (marca/generico),
+   el Fabricante y el Nombre del producto, lo cual es coherente
+   con el funcionamiento del mercado farmaceutico.
+
+4. SOBRE LA REGRESION LOGISTICA: El modelo de clasificacion
+   pudo distinguir entre precios altos y bajos con un nivel de
+   acierto aceptable. La precisión y el recall indicaron que el
+   modelo no se sesgo hacia una sola clase.
+
+5. APRENDIZAJE ALCANZADO:
+   - Se comprendio el flujo completo de un proyecto de machine
+     learning supervisado (regresion).
+   - Se aplicaron tecnicas de preprocesamiento: manejo de
+     categoricas, deteccion de outliers, normalizacion de texto.
+   - Se implementaron dos tipos de modelos de regresion y se
+     interpretaron sus metricas de evaluacion.
+   - Se entendio la diferencia entre predecir un valor numerico
+     (regresion) y clasificar una categoria (clasificacion con
+     regresion logistica).
+   - Se experimento con las limitaciones reales de trabajar con
+     datos publicos: accesibilidad, formatos, recoleccion manual.
+
+6. LIMITACIONES Y MEJORAS FUTURAS:
+   - Una muestra de 10 medicamentos limita la generalizacion.
+     Con mas datos se obtendria un modelo mas robusto.
+   - Se podria usar One-Hot Encoding en lugar de Label Encoding
+     si se contara con mas registros, para evitar que el modelo
+     asuma un orden falso entre categorias.
+   - Se podrian agregar otras variables como concentracion del
+     principio activo, forma farmaceutica (tableta, jarabe,
+     inyectable) y fecha para capturar tendencias temporales.
+
+=============================
+VI. BIBLIOGRAFIA (Formato IEEE)
+=============================
+
+[1] Plataforma Nacional de Datos Abiertos, "Precios de
+    Medicamentos en Establecimientos de Salud (DIGEMID),"
+    Gobierno del Peru. [En linea]. Disponible en:
+    https://www.datosabiertos.gob.pe/
+
+[2] Direccion General de Medicamentos, Insumos y Drogas,
+    "Observatorio de Precios de Medicamentos," DIGEMID -
+    MINSA. [En linea]. Disponible en:
+    https://opm-digemid.minsa.gob.pe/
+
+[3] F. Pedregosa et al., "Scikit-learn: Machine Learning in
+    Python," Journal of Machine Learning Research, vol. 12,
+    pp. 2825-2830, 2011.
+
+[4] J. Brownlee, "Linear Regression for Machine Learning,"
+    Machine Learning Mastery, 2020. [En linea]. Disponible en:
+    https://machinelearningmastery.com/linear-regression-for-
+    machine-learning/
+
+[5] J. Brownlee, "Logistic Regression for Machine Learning,"
+    Machine Learning Mastery, 2020. [En linea]. Disponible en:
+    https://machinelearningmastery.com/logistic-regression-
+    for-machine-learning/
+
+[6] W. McKinney, "Data Structures for Statistical Computing in
+    Python," Proceedings of the 9th Python in Science
+    Conference, pp. 51-56, 2010. (Pandas)
+
+[7] T. Hastie, R. Tibshirani y J. Friedman, The Elements of
+    Statistical Learning: Data Mining, Inference, and
+    Prediction, 2da ed. Nueva York: Springer, 2009.
+
+[8] D. C. Montgomery, E. A. Peck y G. G. Vining, Introduction
+    to Linear Regression Analysis, 5ta ed. Nueva Jersey: Wiley,
+    2012.
+
+[9] C. M. Bishop, Pattern Recognition and Machine Learning.
+    Nueva York: Springer, 2006.
+
+[10] Plataforma Nacional de Datos Abiertos, "Guia practica para
+     publicar datos abiertos," Presidencia del Consejo de
+     Ministros, Peru. [En linea]. Disponible en:
+     https://www.datosabiertos.gob.pe/
+
