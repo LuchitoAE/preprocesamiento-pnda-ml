@@ -92,13 +92,26 @@ doc.add_page_break()
 subtitulo("II. INTRODUCCION")
 separador()
 
-parrafo("Este trabajo tiene como objetivo aplicar modelos de regresion lineal y regresion logistica sobre el dataset de Precios de Medicamentos en Establecimientos de Salud, proporcionado por la Direccion General de Medicamentos, Insumos y Drogas (DIGEMID) a traves de su Observatorio de Precios de Medicamentos, enlazado desde la Plataforma Nacional de Datos Abiertos del Peru.")
+parrafo("El presente trabajo se desarrolla en el marco del curso de Machine Learning y tiene como finalidad aplicar modelos de regresion sobre el dataset de Precios de Medicamentos en Establecimientos de Salud, proporcionado por la Direccion General de Medicamentos, Insumos y Drogas (DIGEMID) a traves de su Observatorio de Precios, enlazado desde la Plataforma Nacional de Datos Abiertos del Peru.")
+separador()
 
-parrafo("La idea principal es predecir el precio unitario de los medicamentos usando variables como el tipo de producto (marca o generico), el departamento donde se vende, el laboratorio que lo fabrica y el establecimiento farmaceutico donde se comercializa. Tambien se busca clasificar si un medicamento tiene un precio alto o bajo comparandolo con la mediana del mercado.")
+subtitulo("Objetivos del trabajo", size=11)
+separador()
 
-parrafo(f"Para armar el dataset se recolectaron datos de 10 medicamentos de alto consumo desde el observatorio web de DIGEMID. Despues de la limpieza y el muestreo estratificado, se obtuvo un total de {r['n_filas']:,} registros con {r['n_medicamentos']} presentaciones distintas de medicamentos (incluyendo marcas comerciales y genericos), distribuidos en {r['n_departamentos']} departamentos del Peru y comercializados por {r['n_fabricantes']} laboratorios diferentes.")
+parrafo("OBJETIVO GENERAL: Aplicar tecnicas de machine learning supervisado para analizar y predecir el comportamiento de los precios de medicamentos en el mercado peruano, utilizando datos reales del observatorio DIGEMID.")
+separador()
 
-parrafo("El analisis completo incluye: identificacion de variables, limpieza de datos, transformacion de categoricas, deteccion de outliers, analisis exploratorio (EDA), division en entrenamiento y prueba, construccion de los modelos de regresion y evaluacion con metricas estandar de machine learning.")
+parrafo("OBJETIVO ESPECIFICO 1 - Regresion lineal multiple:")
+paso("Predecir el PRECIO UNITARIO de un medicamento (en soles) a partir de sus caracteristicas: tipo de producto (marca o generico), nombre del medicamento, laboratorio fabricante, establecimiento donde se vende y departamento de ubicacion. Se utiliza un modelo de regresion lineal multiple y se evalua con las metricas RMSE, MAE y R2.")
+separador()
+
+parrafo("OBJETIVO ESPECIFICO 2 - Regresion logistica (clasificacion binaria):")
+paso(f"Clasificar si un medicamento tiene PRECIO ALTO o PRECIO BAJO, tomando como umbral la mediana de todos los precios del mercado (S/{r['precio_mediana']:.2f}). Se utiliza un modelo de regresion logistica y se evalua con accuracy, precision, recall, F1-score y matriz de confusion.")
+separador()
+
+parrafo(f"Para alcanzar estos objetivos, se recolectaron manualmente datos de 10 medicamentos de alto consumo desde el observatorio web de DIGEMID. Despues del proceso de limpieza y muestreo estratificado, se obtuvo un total de {r['n_filas']:,} registros con {r['n_medicamentos']} presentaciones distintas de medicamentos (marcas comerciales y genericos), distribuidos en los {r['n_departamentos']} departamentos del Peru y comercializados por {r['n_fabricantes']} laboratorios diferentes.")
+
+parrafo("El desarrollo del trabajo sigue la metodologia estandar de machine learning: identificacion de variables, limpieza y tratamiento de datos faltantes, transformacion de variables categoricas, deteccion de outliers, analisis exploratorio (EDA), division en entrenamiento y prueba, construccion de los modelos de regresion y evaluacion mediante metricas.")
 
 doc.add_page_break()
 
